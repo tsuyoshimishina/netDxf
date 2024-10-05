@@ -104,12 +104,6 @@ namespace netDxf.Tables
                 throw new ArgumentNullException(nameof(font));
             }
 
-            if (!Path.GetExtension(font).Equals(".TTF", StringComparison.OrdinalIgnoreCase) &&
-                !Path.GetExtension(font).Equals(".SHX", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ArgumentException("Only true type TTF fonts and ACAD compiled shape SHX fonts are allowed.");
-            }
-
             this.IsReserved = name.Equals(DefaultName, StringComparison.OrdinalIgnoreCase);
             this.file = font;
             this.bigFont = string.Empty;
@@ -162,7 +156,7 @@ namespace netDxf.Tables
             this.fontStyle = fontStyle;
         }
 
-        #endregion
+#endregion
 
         #region public properties
 
@@ -215,16 +209,6 @@ namespace netDxf.Tables
                     if (string.IsNullOrEmpty(this.file))
                     {
                         throw new NullReferenceException("The Big Font is only applicable for SHX Asian fonts.");
-                    }
-
-                    if (!Path.GetExtension(this.file).Equals(".SHX", StringComparison.OrdinalIgnoreCase))
-                    {
-                        throw new NullReferenceException("The Big Font is only applicable for SHX Asian fonts.");
-                    }
-
-                    if (!Path.GetExtension(value).Equals(".SHX", StringComparison.OrdinalIgnoreCase))
-                    {
-                        throw new ArgumentException("The Big Font is only applicable for SHX Asian fonts.", nameof(value));
                     }
 
                     this.bigFont = value;
@@ -363,7 +347,7 @@ namespace netDxf.Tables
             internal set { base.Owner = value; }
         }
 
-        #endregion
+#endregion
 
         #region public methods
 
@@ -463,7 +447,8 @@ namespace netDxf.Tables
                     IsUpsideDown = this.isUpsideDown,
                     IsVertical = this.isVertical,
                     ObliqueAngle = this.obliqueAngle,
-                    WidthFactor = this.widthFactor
+                    WidthFactor = this.widthFactor,
+                    BigFont = this.bigFont
                 };
             }
             else

@@ -2845,8 +2845,7 @@ namespace netDxf.IO
                 {
                     if (string.IsNullOrEmpty(Path.GetExtension(file)))
                     {
-                        // if there is no extension the default SHX will be used instead
-                        file += ".SHX";
+                        ; // don't touch the font name if it doesn't have any extension
                     }
                     else if (!Path.GetExtension(file).Equals(".TTF", StringComparison.InvariantCultureIgnoreCase) &&
                              !Path.GetExtension(file).Equals(".SHX", StringComparison.InvariantCultureIgnoreCase))
@@ -2865,12 +2864,7 @@ namespace netDxf.IO
                     ObliqueAngle = obliqueAngle,
                     WidthFactor = widthFactor,
                 };
-
-                if (Path.GetExtension(file).Equals(".SHX", StringComparison.InvariantCultureIgnoreCase) &&
-                    Path.GetExtension(bigFont).Equals(".SHX", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    style.BigFont = bigFont;
-                }
+                style.BigFont = bigFont;
             }
             else
             {
@@ -3142,7 +3136,7 @@ namespace netDxf.IO
             return vport;
         }
 
-        #endregion
+#endregion
 
         #region block methods
 
@@ -3835,8 +3829,8 @@ namespace netDxf.IO
             string handle = null;
             string owner = null;
             Layer layer = Layer.Default;
-            AciColor color = AciColor.ByLayer;
-            Linetype linetype = Linetype.ByLayer;
+            AciColor color = null;
+            Linetype linetype = null;
             Lineweight lineweight = Lineweight.ByLayer;
             double linetypeScale = 1.0;
             bool isVisible = true;
@@ -3891,7 +3885,7 @@ namespace netDxf.IO
                         this.chunk.Next();
                         break;
                     case 62: //ACI color code
-                        if (!color.UseTrueColor)
+                        if (color == null || !color.UseTrueColor)
                         {
                             color = AciColor.FromCadIndex(this.chunk.ReadShort());
                         }
@@ -4061,8 +4055,10 @@ namespace netDxf.IO
             if (dxfObject is EntityObject entity)
             {
                 entity.Layer = layer;
-                entity.Color = color;
-                entity.Linetype = linetype;
+                if (color != null)
+                    entity.Color = color;
+                if (linetype != null)
+                    entity.Linetype = linetype;
                 entity.Lineweight = lineweight;
                 entity.LinetypeScale = linetypeScale;
                 entity.IsVisible = isVisible;
@@ -8102,6 +8098,7 @@ namespace netDxf.IO
             Vector3 end = Vector3.Zero;
             Vector3 normal = Vector3.UnitZ;
             double thickness = 0.0;
+            Linetype linetype = null;
             List<XData> xData = new List<XData>();
 
             this.chunk.Next();
@@ -8154,6 +8151,11 @@ namespace netDxf.IO
                         XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
                         xData.Add(data);
                         break;
+                    case 6:
+                        string linetypeName = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        linetype = this.GetLinetype(linetypeName);
+                        this.chunk.Next();
+                        break;
                     default:
                         Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
                         this.chunk.Next();
@@ -8168,6 +8170,8 @@ namespace netDxf.IO
                 Normal = normal,
                 Thickness = thickness
             };
+            if (linetype != null)
+                entity.Linetype = linetype;
 
             entity.XData.AddRange(xData);
 
@@ -8476,6 +8480,8 @@ namespace netDxf.IO
             Polyline2DVertex v = new Polyline2DVertex();
             double vX = 0.0;
             Vector3 normal = Vector3.UnitZ;
+            AciColor color = null;
+            Linetype linetype = null;
 
             List<XData> xData = new List<XData>();
 
@@ -8553,6 +8559,20 @@ namespace netDxf.IO
                         XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
                         xData.Add(data);
                         break;
+                    case 62:
+                        if (color == null || !color.UseTrueColor)
+                            color = AciColor.FromCadIndex(this.chunk.ReadShort());
+                        this.chunk.Next();
+                        break;
+                    case 420:
+                        color = AciColor.FromTrueColor(this.chunk.ReadInt());
+                        this.chunk.Next();
+                        break;
+                    case 6:
+                        string linetypeName = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        linetype = this.GetLinetype(linetypeName);
+                        this.chunk.Next();
+                        break;
                     default:
                         Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
                         this.chunk.Next();
@@ -8567,6 +8587,10 @@ namespace netDxf.IO
                 Flags = flags,
                 Normal = normal
             };
+            if (color != null)
+                entity.Color = color;
+            if (linetype != null)
+                entity.Linetype = linetype;
 
             if (constantWidth >= 0.0)
             {
@@ -10002,7 +10026,7 @@ namespace netDxf.IO
             return lineDefinitions;
         }
 
-        #endregion
+#endregion
 
         #region object methods
 
