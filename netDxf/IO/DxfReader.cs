@@ -5334,6 +5334,9 @@ namespace netDxf.IO
             double endAngle = 180.0;
             double thickness = 0.0;
             Vector3 normal = Vector3.UnitZ;
+            AciColor color = null;
+            Linetype linetype = null;
+
             List<XData> xData = new List<XData>();
 
             this.chunk.Next();
@@ -5389,6 +5392,20 @@ namespace netDxf.IO
                         XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
                         xData.Add(data);
                         break;
+                    case 62:
+                        if (color == null || !color.UseTrueColor)
+                            color = AciColor.FromCadIndex(this.chunk.ReadShort());
+                        this.chunk.Next();
+                        break;
+                    case 420:
+                        color = AciColor.FromTrueColor(this.chunk.ReadInt());
+                        this.chunk.Next();
+                        break;
+                    case 6:
+                        string linetypeName = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        linetype = this.GetLinetype(linetypeName);
+                        this.chunk.Next();
+                        break;
                     default:
                         Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
                         this.chunk.Next();
@@ -5409,6 +5426,10 @@ namespace netDxf.IO
                 Thickness = thickness,
                 Normal = normal
             };
+            if (color != null)
+                entity.Color = color;
+            if (linetype != null)
+                entity.Linetype = linetype;
 
             entity.XData.AddRange(xData);
 
@@ -5421,6 +5442,9 @@ namespace netDxf.IO
             double radius = 1.0;
             double thickness = 0.0;
             Vector3 normal = Vector3.UnitZ;
+            AciColor color = null;
+            Linetype linetype = null;
+
             List<XData> xData = new List<XData>();
 
             this.chunk.Next();
@@ -5467,6 +5491,20 @@ namespace netDxf.IO
                         XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
                         xData.Add(data);
                         break;
+                    case 62:
+                        if (color == null || !color.UseTrueColor)
+                            color = AciColor.FromCadIndex(this.chunk.ReadShort());
+                        this.chunk.Next();
+                        break;
+                    case 420:
+                        color = AciColor.FromTrueColor(this.chunk.ReadInt());
+                        this.chunk.Next();
+                        break;
+                    case 6:
+                        string linetypeName = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        linetype = this.GetLinetype(linetypeName);
+                        this.chunk.Next();
+                        break;
                     default:
                         Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
                         this.chunk.Next();
@@ -5485,6 +5523,10 @@ namespace netDxf.IO
                 Thickness = thickness,
                 Normal = normal
             };
+            if (color != null)
+                entity.Color = color;
+            if (linetype != null)
+                entity.Linetype = linetype;
 
             entity.XData.AddRange(xData);
 
@@ -7121,6 +7163,8 @@ namespace netDxf.IO
             Vector3 normal = Vector3.UnitZ;
             double[] param = new double[2];
             double ratio = 0.0;
+            AciColor color = null;
+            Linetype linetype = null;
 
             List<XData> xData = new List<XData>();
 
@@ -7182,6 +7226,20 @@ namespace netDxf.IO
                         XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
                         xData.Add(data);
                         break;
+                    case 62:
+                        if (color == null || !color.UseTrueColor)
+                            color = AciColor.FromCadIndex(this.chunk.ReadShort());
+                        this.chunk.Next();
+                        break;
+                    case 420:
+                        color = AciColor.FromTrueColor(this.chunk.ReadInt());
+                        this.chunk.Next();
+                        break;
+                    case 6:
+                        string linetypeName = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        linetype = this.GetLinetype(linetypeName);
+                        this.chunk.Next();
+                        break;
                     default:
                         Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
                         this.chunk.Next();
@@ -7200,6 +7258,10 @@ namespace netDxf.IO
                 Rotation = rotation * MathHelper.RadToDeg,
                 Normal = normal
             };
+            if (color != null)
+                ellipse.Color = color;
+            if (linetype != null)
+                ellipse.Linetype = linetype;
 
             ellipse.XData.AddRange(xData);
 
